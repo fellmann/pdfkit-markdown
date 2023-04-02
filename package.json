@@ -1,0 +1,40 @@
+{
+  "name": "pdfkit-markdown",
+  "version": "0.1.1",
+  "description": "A markdown renderer for PDFKit using mdast syntax tree.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "author": "Hanno Fellmann",
+  "repository": {
+    "url": "https://github.com/fellmann/pdfkit-markdown",
+    "type": "git"
+  },
+  "keywords": [
+    "markdown",
+    "remark",
+    "pdf",
+    "pdfkit"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "devDependencies": {
+    "@types/mdast": "^3.0.11",
+    "@types/pdfkit": "^0.12.9",
+    "mdast": "^3.0.0",
+    "pdfkit": "^0.13.0",
+    "typescript": "^5.0.3"
+  },
+  "peerDependencies": {
+    "mdast": ">= 3.0.0 < 4.0.0",
+    "pdfkit": ">= 0.12.0 < 0.14.0"
+  },
+  "optionalDependencies": {
+    "mdast": "^3.0.0"
+  }
+}
