@@ -26,6 +26,8 @@ export interface PdfkitMarkdownSettings {
   headerFontSize: (depth: number) => number;
   /** Function to determine font name by header depth */
   headerFontName: (depth: number) => string;
+  /** Function to determine gap size by header depth */
+  headerGapSize: (depth: number) => number;
   /** Throw error on unsupported markdown feature, otherwise silently ignored */
   throwOnUnsupported: boolean;
 }
@@ -43,6 +45,7 @@ export class MarkdownRenderer {
     italicFont: "Helvetica-Oblique",
     headerFontName: () => "Helvetica-Bold",
     headerFontSize: (h) => 20 - h * 1.5,
+    headerGapSize: () => 0,
     fontSize: 10,
     throwOnUnsupported: false,
   };
@@ -173,6 +176,7 @@ export class MarkdownRenderer {
     this.doc.text("\n");
     this.updateFont();
     this.doc.fontSize(this.settings.fontSize);
+    this.doc.y += this.settings.headerGapSize(heading.depth);
   }
 
   private handleList(list: MDAST.List) {
