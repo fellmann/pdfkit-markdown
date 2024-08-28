@@ -8,6 +8,11 @@ export interface PdfkitMarkdownSettings {
   paragraphGap: number;
   /** Gap between list items in points */
   listItemGap: number;
+  /** Offset for list item indent
+   *
+   * default is 0, so the first level is not indented at all.
+   */
+  listItemIndentOffset: number;
   /** Indent per list item depth in points */
   listItemIndent: number;
   /** Font name for code */
@@ -37,6 +42,7 @@ export class MarkdownRenderer {
     blockQuoteIndent: 7,
     paragraphGap: 8,
     listItemGap: 4,
+    listItemIndentOffset: 0,
     listItemIndent: 14,
     codeFont: "Courier",
     normalFont: "Helvetica",
@@ -200,7 +206,7 @@ export class MarkdownRenderer {
   private handleListItemOrdered(item: MDAST.ListItem, i: number) {
     const indent =
       this.doc.page.margins.left +
-      (this.listIndent - 1) * this.settings.listItemIndent;
+      (this.listIndent - 1 + this.settings.listItemIndentOffset) * this.settings.listItemIndent;
     this.doc.text(i + ".", indent, undefined, { continued: true });
     this.doc.text("", { lineBreak: false });
     this.doc.x = indent + this.settings.listItemIndent;
@@ -211,7 +217,7 @@ export class MarkdownRenderer {
   private handleListItem(item: MDAST.ListItem) {
     const indent =
       this.doc.page.margins.left +
-      (this.listIndent - 1) * this.settings.listItemIndent;
+      (this.listIndent - 1 + this.settings.listItemIndentOffset) * this.settings.listItemIndent;
     this.doc.circle(indent + 1, this.doc.y + 4, 1).fill("black");
     this.doc.x = indent + this.settings.listItemIndent;
     for (const child of item.children) this.handleChild(child);
