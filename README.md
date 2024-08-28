@@ -9,19 +9,22 @@ Given a mdast syntax tree as input, content is rendered to a given PDFDocument.
 To render a given markdown string, install:
 
 ```bash
-yarn add pdfkit-markdown unified remark-parse 
+yarn add pdfkit-markdown mdast unified remark-parse 
 ```
 
 ```typescript
 import { MarkdownRenderer } from "pdfkit-markdown";
 import remarkParse from "remark-parse";
 import { unified } from "unified";
+import PDFDocument from "pdfkit";
 
 ...
 
 const tree = unified()
       .use(remarkParse)
       .parse("Markdown **Text**")
+
+const doc = new PDFDocument()
 
 new MarkdownRenderer(doc, { /* optional settings */ }).render(tree);
 ```
