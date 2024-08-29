@@ -1,5 +1,5 @@
-import * as MDAST from "mdast";
-import { default as PdfDocument } from "pdfkit";
+import type * as MDAST from "mdast";
+import type { default as PdfDocument } from "pdfkit";
 
 export interface PdfkitMarkdownSettings {
   /** Indent for block quotes per depth in points */
@@ -8,13 +8,14 @@ export interface PdfkitMarkdownSettings {
   paragraphGap: number;
   /** Gap between list items in points */
   listItemGap: number;
-  /** Offset for list item indent
-   *
-   * default is 0, so the first level is not indented at all.
-   */
-  listItemIndentOffset: number;
-  /** Indent per list item depth in points */
-  listItemIndent: number;
+  /** Offset for ordered list item indent */
+  listItemIndentOffsetOrdered: number;
+  /** Indent per ordered list item depth in points */
+  listItemIndentOrdered: number;
+  /** Offset for unordered list item indent */
+  listItemIndentOffsetUnordered: number;
+  /** Indent per unordered list item depth in points */
+  listItemIndentUnordered: number;
   /** Font name for code */
   codeFont: string;
   /** Font name for normal text */
@@ -31,8 +32,10 @@ export interface PdfkitMarkdownSettings {
   headerFontSize: (depth: number) => number;
   /** Function to determine font name by header depth */
   headerFontName: (depth: number) => string;
-  /** Function to determine gap size by header depth */
-  headerGapSize: (depth: number) => number;
+  /** Function to determine gap size before a header by depth */
+  headerGapBefore: (depth: number) => number;
+  /** Function to determine gap size after a header by depth */
+  headerGapAfter: (depth: number) => number;
   /** Throw error on unsupported markdown feature, otherwise silently ignored */
   throwOnUnsupported: boolean;
 }
@@ -42,8 +45,10 @@ export class MarkdownRenderer {
     blockQuoteIndent: 7,
     paragraphGap: 8,
     listItemGap: 4,
-    listItemIndentOffset: 0,
-    listItemIndent: 14,
+    listItemIndentOffsetOrdered: 7,
+    listItemIndentOrdered: 14,
+    listItemIndentOffsetUnordered: 7,
+    listItemIndentUnordered: 14,
     codeFont: "Courier",
     normalFont: "Helvetica",
     boldItalicFont: "Helvetica-BoldOblique",
@@ -51,7 +56,8 @@ export class MarkdownRenderer {
     italicFont: "Helvetica-Oblique",
     headerFontName: () => "Helvetica-Bold",
     headerFontSize: (h) => 20 - h * 1.5,
-    headerGapSize: () => 0,
+    headerGapBefore: () => 12,
+    headerGapAfter: () => 8,
     fontSize: 10,
     throwOnUnsupported: false,
   };
@@ -75,7 +81,7 @@ export class MarkdownRenderer {
   private listIndent = 0;
   private bold = false;
   private italic = false;
-  private link: string | undefined = undefined;
+  private link: string | null = null;
   private strike = false;
   private blockquoteIndex = 0;
 
@@ -172,17 +178,18 @@ export class MarkdownRenderer {
   private handleLink(link: MDAST.Link) {
     this.link = link.url;
     for (const c of link.children) this.handleChild(c);
-    this.link = undefined;
+    this.link = null;
   }
 
   private handleHeading(heading: MDAST.Heading) {
+    this.doc.y += this.settings.headerGapBefore(heading.depth);
     this.doc.font(this.settings.headerFontName(heading.depth));
     this.doc.fontSize(this.settings.headerFontSize(heading.depth));
     for (const c of heading.children) this.handleChild(c);
     this.doc.text("\n");
     this.updateFont();
     this.doc.fontSize(this.settings.fontSize);
-    this.doc.y += this.settings.headerGapSize(heading.depth);
+    this.doc.y += this.settings.headerGapAfter(heading.depth);
   }
 
   private handleList(list: MDAST.List) {
@@ -206,10 +213,18 @@ export class MarkdownRenderer {
   private handleListItemOrdered(item: MDAST.ListItem, i: number) {
     const indent =
       this.doc.page.margins.left +
-      (this.listIndent - 1 + this.settings.listItemIndentOffset) * this.settings.listItemIndent;
+      (this.listIndent - 1) * this.settings.listItemIndentOrdered +
+      this.settings.listItemIndentOffsetOrdered;
+    // Hack: use { continued: true } first to enforce page break before adding the list item,
+    // then { lineBreak: false } to escape the continued text
     this.doc.text(i + ".", indent, undefined, { continued: true });
     this.doc.text("", { lineBreak: false });
-    this.doc.x = indent + this.settings.listItemIndent;
+
+    const minIndent = this.doc.widthOfString(i + ". ");
+    this.doc.x = Math.max(
+      indent + minIndent,
+      indent + this.settings.listItemIndentOrdered
+    );
     for (const child of item.children) this.handleChild(child);
     this.doc.x = this.doc.page.margins.left;
   }
@@ -217,9 +232,10 @@ export class MarkdownRenderer {
   private handleListItem(item: MDAST.ListItem) {
     const indent =
       this.doc.page.margins.left +
-      (this.listIndent - 1 + this.settings.listItemIndentOffset) * this.settings.listItemIndent;
-    this.doc.x = indent + this.settings.listItemIndent;
-    this.doc.text("", {continued: true}); // Make pdfkit page break before adding the list item, if needed
+      (this.listIndent - 1) * this.settings.listItemIndentUnordered +
+      this.settings.listItemIndentOffsetUnordered;
+    this.doc.x = indent + this.settings.listItemIndentUnordered;
+    this.doc.text("", { continued: true }); // Make pdfkit page break before adding the list item, if needed
     this.doc.circle(indent + 1, this.doc.y + 4, 1).fill("black");
     for (const child of item.children) this.handleChild(child);
     this.doc.x = this.doc.page.margins.left;

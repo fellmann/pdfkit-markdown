@@ -4,6 +4,8 @@ This package provides basic markdown rendering capabilites for [PDFKit](https://
 
 Given a mdast syntax tree as input, content is rendered to a given PDFDocument.
 
+See the output for this README.md at [README.pdf](README.pdf).
+
 ## Usage
 
 To render a given markdown string, install:
@@ -55,4 +57,4 @@ Fonts, sizes, indents etc. are configurable, see documentation on constructor.
 
 ## Similar packages
 
-https://github.com/maiers/pdfkit-commonmark provides similar functionality, but does not support TypeScript and uses the less maintained CommonMark parser.
+[pdfkit-commonmark](https://github.com/maiers/pdfkit-commonmark) provides similar functionality, but does not support TypeScript and uses the less maintained CommonMark parser.

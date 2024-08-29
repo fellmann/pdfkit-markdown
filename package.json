@@ -17,7 +17,8 @@
   ],
   "license": "MIT",
   "scripts": {
-    "build": "tsc"
+    "build": "yarn example && tsc",
+    "example": "tsx src/example.ts"
   },
   "files": [
     "dist",
@@ -28,7 +29,10 @@
     "@types/pdfkit": "^0.13.4",
     "mdast": "^3.0.0",
     "pdfkit": "^0.15.0",
-    "typescript": "^5.5.4"
+    "remark-parse": "^11.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4",
+    "unified": "^11.0.5"
   },
   "peerDependencies": {
     "mdast": ">= 3.0.0 < 4.0.0",
