@@ -218,8 +218,9 @@ export class MarkdownRenderer {
     const indent =
       this.doc.page.margins.left +
       (this.listIndent - 1 + this.settings.listItemIndentOffset) * this.settings.listItemIndent;
-    this.doc.circle(indent + 1, this.doc.y + 4, 1).fill("black");
     this.doc.x = indent + this.settings.listItemIndent;
+    this.doc.text("", {continued: true}); // Make pdfkit page break before adding the list item, if needed
+    this.doc.circle(indent + 1, this.doc.y + 4, 1).fill("black");
     for (const child of item.children) this.handleChild(child);
     this.doc.x = this.doc.page.margins.left;
   }
