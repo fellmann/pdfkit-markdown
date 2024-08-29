@@ -261,12 +261,22 @@ export class MarkdownRenderer {
   }
 
   private handleText(text: MDAST.Text) {
-    const raw = text.value.replace(/[\s\r\n]+/g, " ");
-    this.doc.text(raw, {
-      continued: true,
-      link: this.link,
-      underline: !!this.link,
-      strike: this.strike,
-    });
+    const lines = text.value.split(/[\r\n]+/g);
+
+    let index = 0;
+    for (const line of lines) {
+      /*
+        If the line is empty, we still want to render
+        a space for pdfkit to correctly handle line breaks
+      */
+      this.doc.text(line || ' ', {
+        continued: lines.length === 1 || index === lines.length - 1,
+        link: this.link,
+        underline: !!this.link,
+        strike: this.strike,
+      });
+
+      index++;
+    }
   }
 }
