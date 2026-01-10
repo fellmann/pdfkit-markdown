@@ -26,7 +26,7 @@
   ],
   "devDependencies": {
     "@types/mdast": "^4.0.4",
-    "@types/pdfkit": "^0.13.4",
+    "@types/pdfkit": "^0.17.4",
     "mdast": "^3.0.0",
     "pdfkit": "^0.15.0",
     "remark-parse": "^11.0.0",

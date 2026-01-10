@@ -36,6 +36,8 @@ export interface PdfkitMarkdownSettings {
   headerGapBefore: (depth: number) => number;
   /** Function to determine gap size after a header by depth */
   headerGapAfter: (depth: number) => number;
+  /** Add outlines (bookmarks) based on the header depth */
+  headerOutlines: (depth:number) => boolean;
   /** Throw error on unsupported markdown feature, otherwise silently ignored */
   throwOnUnsupported: boolean;
 }
@@ -58,6 +60,7 @@ export class MarkdownRenderer {
     headerFontSize: (h) => 20 - h * 1.5,
     headerGapBefore: () => 12,
     headerGapAfter: () => 8,
+    headerOutlines: () => true,
     fontSize: 10,
     throwOnUnsupported: false,
   };
@@ -74,10 +77,13 @@ export class MarkdownRenderer {
   render(tree: MDAST.Root) {
     this.doc.fontSize(this.settings.fontSize);
     this.updateFont();
+    this.outlineStack = [ this.doc.outline ];
 
     for (const c of tree.children) this.handleChild(c);
   }
 
+  /** Used to keep track of the context for bookmark purposes */
+  private outlineStack: PDFKit.PDFOutline[] = [];
   private listIndent = 0;
   private bold = false;
   private italic = false;
@@ -179,6 +185,13 @@ export class MarkdownRenderer {
   }
 
   private handleHeading(heading: MDAST.Heading) {
+    if (this.settings.headerOutlines(heading.depth)) {
+      const text = heading.children.find(child => child.type == "text")?.value;
+      if (text) {
+        this.outlineStack.splice(heading.depth);
+        this.outlineStack.push(this.outlineStack[this.outlineStack.length - 1].addItem(text, { expanded: true }));
+      }
+    }
     this.doc.y += this.settings.headerGapBefore(heading.depth);
     this.doc.font(this.settings.headerFontName(heading.depth));
     this.doc.fontSize(this.settings.headerFontSize(heading.depth));
